@@ -29,8 +29,6 @@ const resetDisplay = function () {
 };
 
 const getSpecificMovieData = function (movieTitle) {
-  resetDisplay();
-
   //Get Woah data for an individual movie
   const getData = fetch(
     `https://whoa.onrender.com/whoas/random?results=100&movie=${movieTitle}&sort=number_current_whoa`
@@ -68,6 +66,7 @@ const getSpecificMovieData = function (movieTitle) {
 `;
       }
 
+      resetDisplay();
       document
         .getElementById('summaryContainer')
         .insertAdjacentHTML('afterbegin', summaryhtml);
