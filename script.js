@@ -21,11 +21,27 @@ const getAllMovies = fetch('https://whoa.onrender.com/whoas/movies')
         getSpecificMovieData(movieTitle);
       });
     });
-  });
+  })
+  .catch(err => renderError(err));
 
 const resetDisplay = function () {
+  hideError();
   document.getElementById('summaryContainer').innerHTML = '';
   document.getElementById('instanceContainer').innerHTML = '';
+};
+
+const hideError = function () {
+  document.getElementById('errorContainer').style.display = 'none';
+};
+
+const renderError = function (message) {
+  const errorContainer = document.getElementById('errorContainer');
+  errorContainer.innerHTML = `<div class="popup-content">
+      <span class="close" onclick="hideError()">&times;</span>
+      <h2>Error</h2>
+      <p>${message}</p>
+    </div>`;
+  errorContainer.style.display = 'block';
 };
 
 const getSpecificMovieData = function (movieTitle) {
@@ -73,6 +89,6 @@ const getSpecificMovieData = function (movieTitle) {
       document
         .getElementById('instanceContainer')
         .insertAdjacentHTML('afterbegin', instanceHtml);
-      console.log(html);
-    });
+    })
+    .catch(err => renderError(err));
 };
