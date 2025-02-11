@@ -1,0 +1,147 @@
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f9;
+}
+
+h2 {
+  text-align: center;
+}
+
+.movie-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.movie-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.movie-item:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-5px);
+}
+
+.movie-item.selected {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+.movie-item.selected:hover {
+  background-color: #0056b3;
+}
+
+.movie-summary {
+  background-color: #fff;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+  width: 600px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 20px;
+  position: relative;
+}
+
+.movie-card {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+  transition: transform 0.3s;
+  float: left;
+  min-width: 300px;
+}
+
+.movie-poster {
+  width: 150px;
+  height: auto;
+  border-radius: 8px;
+  margin-right: 20px;
+}
+
+.movie-info {
+  flex: 1;
+  padding: 20px;
+  text-align: center;
+}
+
+.movie-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.movie-info p {
+  margin: 8px 0;
+  color: #555;
+}
+
+.movie-info p span {
+  font-weight: bold;
+  color: #333;
+}
+
+.movie-summary::before {
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.movie-summary::after {
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.movie-card:hover {
+  transform: translateY(-10px);
+}
+
+.movie-audio {
+  margin-top: 20px;
+  width: 100%;
+}
+
+#summaryContainer {
+  display: flex;
+  justify-content: center;
+}
+
+#instanceContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.movie-woah-counter {
+  font-size: 15px;
+  font-weight: bold;
+  color: #787878;
+  text-align: center;
+  background: #f1f1f1;
+  padding: 3px;
+}
+
+#mainListContainer {
+  display: flex;
+  flex-wrap: wrap;
+  width: 1200px;
+  margin: 0 auto;
+}
