@@ -1,10 +1,63 @@
-//Get Woah data for all movies
-const getAllMovies = fetch('https://whoa.onrender.com/whoas/movies')
-  .then(response => response.json())
-  .then(function (data) {
-    //Convert the data into html
+class MovieList {
+  constructor() {
+    this.movies = [];
+  }
+
+  async getData() {
+    try {
+      let result = await fetch('https://whoa.onrender.com/whoas/movies');
+      let data = await result.json();
+      this.movies = data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}
+
+class Movie {
+  constructor(movie) {
+    this.movie = movie;
+  }
+
+  async getData() {
+    try {
+      let result = await fetch(
+        `https://whoa.onrender.com/whoas/random?results=100&movie=${this.movie}&sort=number_current_whoa`
+      );
+      let data = await result.json();
+      return data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}
+
+class Error {
+  static render(err) {
+    document.getElementById(
+      'errorContainer'
+    ).innerHTML = `<div class="popup-content">
+      <span class="close" onclick="ErrorUI.hide()">&times;</span>
+      <h2>Error</h2>
+      <p>${err}</p>
+    </div>`;
+    ErrorUI.show();
+  }
+}
+
+//--- The UI classes are used for rendering the data to the page
+class PageUI {
+  static resetDisplay() {
+    ErrorUI.hide();
+    document.getElementById('summaryContainer').innerHTML = '';
+    document.getElementById('instanceContainer').innerHTML = '';
+  }
+}
+
+class MovieListUI {
+  static render(thisMovieList) {
     let html = '';
-    data.forEach(movie => {
+    thisMovieList.forEach(movie => {
       const encodedTitle = encodeURIComponent(movie);
       html += `<div data-movie="${encodedTitle}" class="movie-item">${movie}</div>`;
     });
@@ -18,41 +71,21 @@ const getAllMovies = fetch('https://whoa.onrender.com/whoas/movies')
     document.querySelectorAll('.movie-item').forEach(item => {
       item.addEventListener('click', function () {
         const movieTitle = this.getAttribute('data-movie');
-        getSpecificMovieData(movieTitle);
+
+        const thisMovie = new Movie(movieTitle);
+        thisMovie
+          .getData()
+          .then(data => MovieUI.render(data))
+          .catch(err => Error.render(err));
       });
     });
-  })
-  .catch(err => renderError(err));
+  }
+}
 
-const resetDisplay = function () {
-  hideError();
-  document.getElementById('summaryContainer').innerHTML = '';
-  document.getElementById('instanceContainer').innerHTML = '';
-};
-
-const hideError = function () {
-  document.getElementById('errorContainer').style.display = 'none';
-};
-
-const renderError = function (message) {
-  const errorContainer = document.getElementById('errorContainer');
-  errorContainer.innerHTML = `<div class="popup-content">
-      <span class="close" onclick="hideError()">&times;</span>
-      <h2>Error</h2>
-      <p>${message}</p>
-    </div>`;
-  errorContainer.style.display = 'block';
-};
-
-const getSpecificMovieData = function (movieTitle) {
-  //Get Woah data for an individual movie
-  const getData = fetch(
-    `https://whoa.onrender.com/whoas/random?results=100&movie=${movieTitle}&sort=number_current_whoa`
-  )
-    .then(response => response.json())
-    .then(function (data) {
-      //extract summary information for the movie
-      summaryhtml = `<article class="movie-summary">
+class MovieSummaryUI {
+  static render(data) {
+    let summaryHtml = '';
+    summaryHtml = `<article class="movie-summary">
   <img src="${data[0].poster}" alt="Movie Poster" class="movie-poster">
   <div class="movie-info">
     <h2 class="movie-title">${data[0].movie}</h2>
@@ -64,11 +97,18 @@ const getSpecificMovieData = function (movieTitle) {
   </div>
 </article>
 `;
+    document
+      .getElementById('summaryContainer')
+      .insertAdjacentHTML('afterbegin', summaryHtml);
+  }
+}
 
-      //extract all woahs for the movie
-      instanceHtml = '';
-      for (const instance of data) {
-        instanceHtml += `<article class="movie-card">
+class MovieQuoteInstancesUI {
+  static render(data) {
+    let instanceHtml = '';
+    instanceHtml = '';
+    for (const instance of data) {
+      instanceHtml += `<article class="movie-card">
         <div class='movie-woah-counter'>${instance.current_whoa_in_movie}/${data[0].total_whoas_in_movie}</div>
   <div class="movie-info">
     <p class="movie-timestamp"><span>Timestamp:</span> ${instance.timestamp}</p>
@@ -80,15 +120,38 @@ const getSpecificMovieData = function (movieTitle) {
   </div>
 </article>
 `;
-      }
-
-      resetDisplay();
-      document
-        .getElementById('summaryContainer')
-        .insertAdjacentHTML('afterbegin', summaryhtml);
       document
         .getElementById('instanceContainer')
         .insertAdjacentHTML('afterbegin', instanceHtml);
-    })
-    .catch(err => renderError(err));
-};
+    }
+  }
+}
+
+class MovieUI {
+  static render(data) {
+    PageUI.resetDisplay();
+    MovieSummaryUI.render(data);
+    MovieQuoteInstancesUI.render(data);
+  }
+}
+
+class ErrorUI {
+  static show() {
+    document.getElementById('errorContainer').style.display = 'block';
+  }
+
+  static hide() {
+    document.getElementById('errorContainer').style.display = 'none';
+  }
+}
+
+//---Kick off
+
+const thisMovieList = new MovieList();
+
+thisMovieList
+  .getData()
+  .then(() => {
+    MovieListUI.render(thisMovieList.movies);
+  })
+  .catch(err => renderError(err));
