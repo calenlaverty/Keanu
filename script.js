@@ -1,8 +1,17 @@
+class APIService {
+  static async getJSON(url) {
+    let result = await fetch(url);
+    if (!result.ok) {
+      throw new Error('HTTP error!');
+    }
+    return await result.json();
+  }
+}
+
 class MovieService {
   static async fetchMovies() {
     try {
-      let result = await fetch('https://whoa.onrender.com/whoas/movies');
-      return await result.json();
+      return APIService.getJSON('https://whoa.onrender.com/whoas/movies');
     } catch (error) {
       throw new Error('Failed to fetch movies');
     }
@@ -10,10 +19,9 @@ class MovieService {
 
   static async fetchMovieDetails(movie) {
     try {
-      let result = await fetch(
+      return APIService.getJSON(
         `https://whoa.onrender.com/whoas/random?results=100&movie=${movie}&sort=number_current_whoa`
       );
-      return await result.json();
     } catch (error) {
       throw new Error(`Failed to fetch details for ${movie}`);
     }
