@@ -1,142 +1,103 @@
-class MovieList {
-  constructor() {
-    this.movies = [];
-  }
-
-  async getData() {
+class MovieService {
+  static async fetchMovies() {
     try {
       let result = await fetch('https://whoa.onrender.com/whoas/movies');
-      let data = await result.json();
-      this.movies = data;
+      return await result.json();
     } catch (error) {
-      console.log(error);
+      throw new Error('Failed to fetch movies');
     }
   }
-}
 
-class Movie {
-  constructor(movie) {
-    this.movie = movie;
-  }
-
-  async getData() {
+  static async fetchMovieDetails(movie) {
     try {
       let result = await fetch(
-        `https://whoa.onrender.com/whoas/random?results=100&movie=${this.movie}&sort=number_current_whoa`
+        `https://whoa.onrender.com/whoas/random?results=100&movie=${movie}&sort=number_current_whoa`
       );
-      let data = await result.json();
-      return data;
+      return await result.json();
     } catch (error) {
-      console.log(error);
+      throw new Error(`Failed to fetch details for ${movie}`);
     }
   }
 }
 
-class Error {
-  static render(err) {
-    document.getElementById(
-      'errorContainer'
-    ).innerHTML = `<div class="popup-content">
-      <span class="close" onclick="ErrorUI.hide()">&times;</span>
-      <h2>Error</h2>
-      <p>${err}</p>
-    </div>`;
-    ErrorUI.show();
-  }
-}
-
-//--- The UI classes are used for rendering the data to the page
-class PageUI {
-  static resetDisplay() {
-    ErrorUI.hide();
-    document.getElementById('summaryContainer').innerHTML = '';
-    document.getElementById('instanceContainer').innerHTML = '';
-  }
-}
-
+// UI Handling
 class MovieListUI {
-  static render(thisMovieList) {
-    let html = '';
-    thisMovieList.forEach(movie => {
-      const encodedTitle = encodeURIComponent(movie);
-      html += `<div data-movie="${encodedTitle}" class="movie-item">${movie}</div>`;
-    });
+  static render(movieList) {
+    let html = movieList
+      .map(
+        movie =>
+          `<div data-movie="${encodeURIComponent(
+            movie
+          )}" class="movie-item">${movie}</div>`
+      )
+      .join('');
 
-    //Add the html to the page
-    document
-      .getElementById('mainListContainer')
-      .insertAdjacentHTML('afterbegin', `${html}`);
+    document.getElementById('mainListContainer').innerHTML = html;
 
-    // Add event listeners to each movie item
-    document.querySelectorAll('.movie-item').forEach(item => {
-      item.addEventListener('click', function () {
-        const movieTitle = this.getAttribute('data-movie');
-
-        const thisMovie = new Movie(movieTitle);
-        thisMovie
-          .getData()
-          .then(data => MovieUI.render(data))
-          .catch(err => Error.render(err));
-      });
-    });
+    EventHandler.attachMovieClickListeners();
   }
 }
 
 class MovieSummaryUI {
-  static render(data) {
-    let summaryHtml = '';
-    summaryHtml = `<article class="movie-summary">
-  <img src="${data[0].poster}" alt="Movie Poster" class="movie-poster">
-  <div class="movie-info">
-    <h2 class="movie-title">${data[0].movie}</h2>
-    <p class="movie-year"><span>Year:</span> ${data[0].year}</p>
-    <p class="movie-release-date"><span>Release Date:</span> ${data[0].release_date}</p>
-    <p class="movie-director"><span>Director:</span> ${data[0].director}</p>
-    <p class="movie-character"><span>Character:</span> ${data[0].character}</p>
-    <p class="movie-total-whoas"><span>Total Whoas in Movie:</span> ${data[0].total_whoas_in_movie}</p>
-  </div>
-</article>
-`;
-    document
-      .getElementById('summaryContainer')
-      .insertAdjacentHTML('afterbegin', summaryHtml);
+  static render(movieData) {
+    const {
+      poster,
+      movie,
+      year,
+      release_date,
+      director,
+      character,
+      total_whoas_in_movie,
+    } = movieData[0];
+
+    let summaryHtml = `
+      <article class="movie-summary">
+        <img src="${poster}" alt="Movie Poster" class="movie-poster">
+        <div class="movie-info">
+          <h2 class="movie-title">${movie}</h2>
+          <p class="movie-year"><span>Year:</span> ${year}</p>
+          <p class="movie-release-date"><span>Release Date:</span> ${release_date}</p>
+          <p class="movie-director"><span>Director:</span> ${director}</p>
+          <p class="movie-character"><span>Character:</span> ${character}</p>
+          <p class="movie-total-whoas"><span>Total Whoas in Movie:</span> ${total_whoas_in_movie}</p>
+        </div>
+      </article>`;
+
+    document.getElementById('summaryContainer').innerHTML = summaryHtml;
   }
 }
 
 class MovieQuoteInstancesUI {
-  static render(data) {
-    let instanceHtml = '';
-    instanceHtml = '';
-    for (const instance of data) {
-      instanceHtml += `<article class="movie-card">
-        <div class='movie-woah-counter'>${instance.current_whoa_in_movie}/${data[0].total_whoas_in_movie}</div>
-  <div class="movie-info">
-    <p class="movie-timestamp"><span>Timestamp:</span> ${instance.timestamp}</p>
-    <p class="movie-full-line"><span>Full Line:</span> ${instance.full_line}</p>
-    <audio controls class="movie-audio">
-      <source src="${instance.audio}" type="audio/mpeg">
-      Your browser does not support the audio element.
-    </audio>
-  </div>
-</article>
-`;
-      document
-        .getElementById('instanceContainer')
-        .insertAdjacentHTML('afterbegin', instanceHtml);
-    }
-  }
-}
+  static render(movieData) {
+    const instanceHtml = movieData
+      .map(
+        instance => `
+        <article class="movie-card">
+          <div class='movie-woah-counter'>${instance.current_whoa_in_movie}/${movieData[0].total_whoas_in_movie}</div>
+          <div class="movie-info">
+            <p class="movie-timestamp"><span>Timestamp:</span> ${instance.timestamp}</p>
+            <p class="movie-full-line"><span>Full Line:</span> ${instance.full_line}</p>
+            <audio controls class="movie-audio">
+              <source src="${instance.audio}" type="audio/mpeg">
+              Your browser does not support the audio element.
+            </audio>
+          </div>
+        </article>`
+      )
+      .join('');
 
-class MovieUI {
-  static render(data) {
-    PageUI.resetDisplay();
-    MovieSummaryUI.render(data);
-    MovieQuoteInstancesUI.render(data);
+    document.getElementById('instanceContainer').innerHTML = instanceHtml;
   }
 }
 
 class ErrorUI {
-  static show() {
+  static show(message) {
+    document.getElementById('errorContainer').innerHTML = `
+      <div class="popup-content">
+        <span class="close" onclick="ErrorUI.hide()">&times;</span>
+        <h2>Error</h2>
+        <p>${message}</p>
+      </div>`;
     document.getElementById('errorContainer').style.display = 'block';
   }
 
@@ -145,13 +106,31 @@ class ErrorUI {
   }
 }
 
-//---Kick off
+// Event Handling
+class EventHandler {
+  static attachMovieClickListeners() {
+    document.querySelectorAll('.movie-item').forEach(item => {
+      item.addEventListener('click', async function () {
+        const movieTitle = this.getAttribute('data-movie');
 
-const thisMovieList = new MovieList();
+        try {
+          const movieData = await MovieService.fetchMovieDetails(movieTitle);
+          MovieSummaryUI.render(movieData);
+          MovieQuoteInstancesUI.render(movieData);
+        } catch (err) {
+          ErrorUI.show(err.message);
+        }
+      });
+    });
+  }
+}
 
-thisMovieList
-  .getData()
-  .then(() => {
-    MovieListUI.render(thisMovieList.movies);
-  })
-  .catch(err => renderError(err));
+// Initialization
+(async function initialize() {
+  try {
+    const movies = await MovieService.fetchMovies();
+    MovieListUI.render(movies);
+  } catch (err) {
+    ErrorUI.show(err.message);
+  }
+})();
