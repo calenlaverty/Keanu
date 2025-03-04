@@ -1,10 +1,17 @@
+import defaultVal, * as getData from './modules/getData.js';
+
 class APIService {
   static async getJSON(url) {
-    let result = await fetch(url);
-    if (!result.ok) {
-      throw new Error('HTTP error!');
+    try {
+      let result = await fetch(url);
+      if (!result.ok) {
+        throw new Error(`HTTP error! Status: ${result.status}`);
+      }
+      return await result.json();
+    } catch (error) {
+      console.error('Error fetching JSON:', error);
+      throw error;
     }
-    return await result.json();
   }
 }
 
@@ -13,7 +20,7 @@ class MovieService {
     try {
       return APIService.getJSON('https://whoa.onrender.com/whoas/movies');
     } catch (error) {
-      throw new Error('Failed to fetch movies');
+      throw new Error('Failed to fetch movies => ' & error);
     }
   }
 
@@ -23,7 +30,7 @@ class MovieService {
         `https://whoa.onrender.com/whoas/random?results=100&movie=${movie}&sort=number_current_whoa`
       );
     } catch (error) {
-      throw new Error(`Failed to fetch details for ${movie}`);
+      throw new Error(`Failed to fetch details for ${movie} => ${error}`);
     }
   }
 }
@@ -138,6 +145,7 @@ class EventHandler {
   try {
     const movies = await MovieService.fetchMovies();
     MovieListUI.render(movies);
+    console.log(getData.functionA() + defaultVal());
   } catch (err) {
     ErrorUI.show(err.message);
   }
